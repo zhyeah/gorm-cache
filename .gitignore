@@ -1,0 +1,13 @@
+.vscode/*
+polaris/*
+main
+
+# mac
+.DS_Store
+
+# go
+go.sum
+
+main.go
+dao
+dao/*
