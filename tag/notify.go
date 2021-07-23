@@ -2,7 +2,6 @@ package tag
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 
 	"github.com/zhyeah/gorm-cache/constant"
@@ -19,9 +18,6 @@ type NotifyTag struct {
 // ResolveNotifyTag resolve notify tag to NotifyTag struct
 func ResolveNotifyTag(notifyTag string) (*NotifyTag, error) {
 	tagMap := ConvertTagArrayToMap(notifyTag)
-	if len(tagMap) < 3 {
-		return nil, errors.New("the count of tag parameter is not enough")
-	}
 	keys := make([]string, 0)
 	kval := tagMap[constant.NotifyTagKeys]
 	kval = strings.ReplaceAll(kval, "'", "\"")
