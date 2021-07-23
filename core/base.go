@@ -157,7 +157,9 @@ func (base *CacheDaoBase) GetByIds(ids []uint64) (interface{}, error) {
 	absentIds := make([]uint64, 0)
 
 	// get obj list cache versions
+	startTime := time.Now().UnixNano() / 1e6
 	objCacheKeys, err := base.GetObjectKeys(ids)
+	log.Logger.Debugf("get ids while get by keys cost time: %d", time.Now().UnixNano()/1e6-startTime)
 	if err != nil {
 		// return from sql with cache set
 		log.Logger.Warnf("missed object cache keys for ids %v, err: %v", ids, err)
@@ -176,7 +178,9 @@ func (base *CacheDaoBase) GetByIds(ids []uint64) (interface{}, error) {
 	}
 
 	// getMulti from cache
+	startTime = time.Now().UnixNano() / 1e6
 	objCacheItems, err := MemcacheClient.GetMulti(keys)
+	log.Logger.Debugf("get ids while gets cost time: %d", time.Now().UnixNano()/1e6-startTime)
 	if err != nil {
 		log.Logger.Warnf("missed object caches for ids %d, err: %v", ids, err)
 		return base.SetObjectCachesForGetByIds(ids)
@@ -338,9 +342,9 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 	}
 
 	// get caches
-	startTime := time.Now().UnixNano()
+	startTime := time.Now().UnixNano() / 1e6
 	cacheItems, err := MemcacheClient.GetMulti(cacheKey)
-	log.Logger.Debugf("get multi cost time: %d", time.Now().UnixNano()-startTime)
+	log.Logger.Debugf("get multi cost time: %d", time.Now().UnixNano()/1e6-startTime)
 	if err != nil {
 		log.Logger.Errorf("GetByConcreteKeys get caches failed, args: %v err: %v", args, err)
 		retVals := util.ReflectInvokeMethod(base.SQLDao, sqlMethodName, args...)
@@ -370,9 +374,7 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 	}
 
 	// get by ids
-	startTime = time.Now().UnixNano()
 	objs, err := base.GetByIds(idArr)
-	log.Logger.Debugf("get multi while get by ids cost time: %d", time.Now().UnixNano()-startTime)
 	if err != nil {
 		log.Logger.Errorf("GetByConcreteKeys get caches failed, args: %v err: %v", args, err)
 		retVals := util.ReflectInvokeMethod(base.SQLDao, sqlMethodName, args...)
