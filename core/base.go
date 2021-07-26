@@ -441,7 +441,7 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 			absent = true
 			for _, li := range listArgIndexs {
 				value := reflect.ValueOf(absentParams[li])
-				if reflect.TypeOf(value).Kind() == reflect.Slice {
+				if value.Type().Kind() == reflect.Slice {
 					value = reflect.Append(value, reflect.ValueOf(arrMap[k][li]))
 					absentParams[li] = value.Interface()
 				} else {
