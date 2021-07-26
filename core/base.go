@@ -415,8 +415,16 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 		if _, ok := listArgIndexMap[i]; !ok {
 			absentParams[i] = args[i]
 		} else {
-			listPtrValue := util.NewListPtrValueByType(reflect.TypeOf(args[i]).Elem())
-			absentParams[i] = listPtrValue.Elem().Interface()
+			argsiType := reflect.TypeOf(args[i])
+			if argsiType.Kind() == reflect.Ptr {
+				argsiType = argsiType.Elem()
+			}
+			listPtrValue := util.NewListPtrValueByType(argsiType.Elem())
+			if reflect.TypeOf(args[i]).Kind() == reflect.Slice {
+				absentParams[i] = listPtrValue.Elem().Interface()
+			} else {
+				absentParams[i] = listPtrValue.Interface()
+			}
 		}
 	}
 	absent := false
@@ -433,8 +441,13 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 			absent = true
 			for _, li := range listArgIndexs {
 				value := reflect.ValueOf(absentParams[li])
-				value = reflect.Append(value, reflect.ValueOf(arrMap[k][li]))
-				absentParams[li] = value.Interface()
+				if reflect.TypeOf(value).Kind() == reflect.Slice {
+					value = reflect.Append(value, reflect.ValueOf(arrMap[k][li]))
+					absentParams[li] = value.Interface()
+				} else {
+					valueList := value.Elem()
+					valueList.Set(reflect.Append(valueList, reflect.ValueOf(arrMap[k][li])))
+				}
 			}
 		}
 	}
