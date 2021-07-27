@@ -455,24 +455,29 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 			}
 		}
 	}
+	log.Logger.Debugf("current list: %v", listVal.Interface())
 	log.Logger.Debugf("absent params: %v, absent: %v", absentParams, absent)
+	for i := range absentParams {
+		log.Logger.Debugf("absentParams %d: %v", i, absentParams[i])
+	}
 
 	if absent {
 		absentRet := util.ReflectInvokeMethod(base.SQLDao, sqlMethodName, absentParams...)
+		log.Logger.Debugf("absentRet %v", absentRet)
 		if err != nil {
 			log.Logger.Errorf("get absent objs from sql failed, absent args: %v", absentParams)
 		}
 		objs := absentRet[0] // TODO: 这里目前默认是第一个返回值作为db obj, 后续评估是否需要扫描结果数组
-		// go func() {
-		// 	err := base.SetCaches(objs, sqlMethodName, paramArrays) // here we pass paramArrays is ok, cause the implemention use map to find corresponding objs
-		// 	if err != nil {
-		// 		log.Logger.Errorf("GetByConcreteKeys set absent caches failed for args: %v, err: %v", absentParams, err)
-		// 	}
-		// }()
-		err := base.SetCaches(objs, sqlMethodName, paramArrays) // here we pass paramArrays is ok, cause the implemention use map to find corresponding objs
-		if err != nil {
-			log.Logger.Errorf("GetByConcreteKeys set absent caches failed for args: %v, err: %v", absentParams, err)
-		}
+		go func() {
+			err := base.SetCaches(objs, sqlMethodName, paramArrays) // here we pass paramArrays is ok, cause the implemention use map to find corresponding objs
+			if err != nil {
+				log.Logger.Errorf("GetByConcreteKeys set absent caches failed for args: %v, err: %v", absentParams, err)
+			}
+		}()
+		// err := base.SetCaches(objs, sqlMethodName, paramArrays) // here we pass paramArrays is ok, cause the implemention use map to find corresponding objs
+		// if err != nil {
+		// 	log.Logger.Errorf("GetByConcreteKeys set absent caches failed for args: %v, err: %v", absentParams, err)
+		// }
 		absentListType := reflect.TypeOf(objs)
 		absentListValue := reflect.ValueOf(objs)
 		if absentListType.Kind() == reflect.Ptr {
@@ -847,9 +852,6 @@ func (base *CacheDaoBase) SetCaches(objs interface{}, methodName string, paramAr
 
 	log.Logger.Debugf("SetCaches objs: %v", objs)
 	log.Logger.Debugf("SetCaches methodName: %v", methodName)
-	for i := range paramArray {
-		log.Logger.Debugf("SetCaches paramArray %d: %v", i, paramArray[i])
-	}
 
 	// set each key cache
 	objsValue := reflect.ValueOf(objs)
