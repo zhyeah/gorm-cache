@@ -379,16 +379,12 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 		log.Logger.Errorf("GetByConcreteKeys get caches failed, args: %v err: %v", args, err)
 		retVals := util.ReflectInvokeMethod(base.SQLDao, sqlMethodName, args...)
 		objs := retVals[0] // TODO: 这里目前默认是第一个返回值作为db obj, 后续评估是否需要扫描结果数组
-		// go func() {
-		// 	err := base.SetCaches(objs, sqlMethodName, paramArrays)
-		// 	if err != nil {
-		// 		log.Logger.Errorf("GetByConcreteKeys set caches failed for args: %v, err: %v", args, err)
-		// 	}
-		// }()
-		err := base.SetCaches(objs, sqlMethodName, paramArrays)
-		if err != nil {
-			log.Logger.Errorf("GetByConcreteKeys set caches failed for args: %v, err: %v", args, err)
-		}
+		go func() {
+			err := base.SetCaches(objs, sqlMethodName, paramArrays)
+			if err != nil {
+				log.Logger.Errorf("GetByConcreteKeys set caches failed for args: %v, err: %v", args, err)
+			}
+		}()
 		objsType := reflect.TypeOf(objs)
 		objsValue := reflect.ValueOf(objs)
 		if objsType.Kind() == reflect.Slice {
@@ -474,10 +470,6 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 				log.Logger.Errorf("GetByConcreteKeys set absent caches failed for args: %v, err: %v", absentParams, err)
 			}
 		}()
-		// err := base.SetCaches(objs, sqlMethodName, paramArrays) // here we pass paramArrays is ok, cause the implemention use map to find corresponding objs
-		// if err != nil {
-		// 	log.Logger.Errorf("GetByConcreteKeys set absent caches failed for args: %v, err: %v", absentParams, err)
-		// }
 		absentListType := reflect.TypeOf(objs)
 		absentListValue := reflect.ValueOf(objs)
 		if absentListType.Kind() == reflect.Ptr {
