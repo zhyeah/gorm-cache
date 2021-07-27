@@ -841,6 +841,12 @@ func (base *CacheDaoBase) SetCache(obj interface{}, methodName string, args ...i
 // SetCaches set caches for keys query
 func (base *CacheDaoBase) SetCaches(objs interface{}, methodName string, paramArray [][]interface{}) error {
 
+	log.Logger.Debugf("SetCaches objs: %v", objs)
+	log.Logger.Debugf("SetCaches methodName: %v", methodName)
+	for i := range paramArray {
+		log.Logger.Debugf("SetCaches paramArray %d: %v", i, paramArray[i])
+	}
+
 	// set each key cache
 	objsValue := reflect.ValueOf(objs)
 	objsType := reflect.TypeOf(objs)
