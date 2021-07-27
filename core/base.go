@@ -752,6 +752,9 @@ func (base *CacheDaoBase) GetVersions(methodName string, args [][]interface{}) (
 		versionMap[versionKey] = akey
 	}
 
+	log.Logger.Debugf("version keys: %v", versionKeys)
+	log.Logger.Debugf("version map: %v", versionMap)
+
 	items, err := MemcacheClient.GetMulti(versionKeys)
 	if err != nil {
 		return ret, err
@@ -848,10 +851,12 @@ func (base *CacheDaoBase) SetCaches(objs interface{}, methodName string, paramAr
 
 	notifyInfo := base.MethodNotifyInfoMap[methodName]
 	arrMap := base.getParamMap(paramArray, notifyInfo)
+	log.Logger.Debugf("arrMap: %v", arrMap)
 
 	for i := 0; i < objsValue.Len(); i++ {
 		obj := objsValue.Index(i).Interface()
 		objMapKey := base.getObjMapKey(obj, notifyInfo)
+		log.Logger.Debugf("objMapKey: %s", objMapKey)
 		if param, ok := arrMap[objMapKey]; ok {
 			log.Logger.Debugf("cache match for %v", param)
 			base.SetCache(obj, methodName, param...)
