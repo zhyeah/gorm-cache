@@ -899,7 +899,7 @@ func (base *CacheDaoBase) SetListCache(methodName string, args ...interface{}) (
 	now := time.Now().UnixNano() / 1e6
 	oldVersion, err := base.GetVersion(methodName, args...)
 	if err != nil {
-		return nil, err
+		return retList, err
 	}
 	if oldVersion != "" {
 		now = util.ConvertStringToNumber(oldVersion)
