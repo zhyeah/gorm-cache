@@ -760,7 +760,6 @@ func (base *CacheDaoBase) GetVersions(methodName string, args [][]interface{}) (
 	startTime := time.Now().UnixNano() / 1e6
 	items, err := MemcacheClient.GetMulti(versionKeys)
 	log.Logger.Warnf("GetVersions get multi cost %d", time.Now().UnixNano()/1e6-startTime)
-	fmt.Println(items)
 	if err != nil {
 		return ret, err
 	}
@@ -768,7 +767,6 @@ func (base *CacheDaoBase) GetVersions(methodName string, args [][]interface{}) (
 	for k, v := range items {
 		ret[versionMap[k]] = string(v.Value)
 	}
-	fmt.Println("ret: ", ret)
 	return ret, nil
 }
 
