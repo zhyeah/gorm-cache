@@ -8,7 +8,7 @@ const (
 // notify type constant
 const (
 	NotifyTypeConcrete = "concrete"
-	NotifyTypeList     = "list"
+	NotifyTypeRange    = "range"
 )
 
 // notify tag fields

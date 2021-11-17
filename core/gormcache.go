@@ -17,7 +17,7 @@ type MemcacheConfig struct {
 	MaxIdleConns int
 }
 
-// MemcacheClient 全局memcache缓存客户端
+// MemcacheClient global memcache client
 var MemcacheClient *memcache.Client
 
 // InitializeCache initialize

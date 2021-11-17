@@ -538,7 +538,7 @@ func (base *CacheDaoBase) NotifyModified(curDo interface{}) error {
 	// update version cache
 	for _, info := range base.NotifyInfos {
 		fieldStrValues := util.GetFieldsStringValues(curDo, info.Fields)
-		vKey := base.MakeVersionKey(info.VersionKeyPrefix, fieldStrValues)
+		vKey := base.MakeVersionKey(info.VersionKeyPrefix, info, fieldStrValues)
 		log.Logger.Debugf("ready to clear key: %s", vKey)
 		err := base.UpdateVersion(vKey)
 		if err != nil {
@@ -785,7 +785,12 @@ func (base *CacheDaoBase) MakeMethodVersionKey(methodName string, args ...interf
 		argStr := util.GeneralToString(args[info.Args[i]])
 		keyArgs = append(keyArgs, argStr)
 	}
-	versionKey := base.MakeVersionKey(info.VersionKeyPrefix, keyArgs)
+
+	info, exist := base.MethodNotifyInfoMap[methodName]
+	if exist {
+		return "", fmt.Errorf("cannot make method version key cause method %s not exist", methodName)
+	}
+	versionKey := base.MakeVersionKey(info.VersionKeyPrefix, info, keyArgs)
 	return versionKey, nil
 }
 
@@ -930,10 +935,14 @@ func (base *CacheDaoBase) MakeKey(keyPrefix string, version string) string {
 }
 
 // MakeVersionKey make version key string (V_{methodNmae}_{param list})
-func (base *CacheDaoBase) MakeVersionKey(versionKeyPrefix string, fieldStrValues []string) string {
+func (base *CacheDaoBase) MakeVersionKey(versionKeyPrefix string, info *NotifyInfo, fieldStrValues []string) string {
 	arr := make([]string, 0)
 	arr = append(arr, versionKeyPrefix)
-	arr = append(arr, fieldStrValues...)
+	if info.Type == constant.NotifyTypeRange {
+		arr = append(arr, info.Fields...)
+	} else {
+		arr = append(arr, fieldStrValues...)
+	}
 	return strings.Join(arr, "_")
 }
 
