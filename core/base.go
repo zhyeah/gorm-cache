@@ -786,10 +786,6 @@ func (base *CacheDaoBase) MakeMethodVersionKey(methodName string, args ...interf
 		keyArgs = append(keyArgs, argStr)
 	}
 
-	info, exist := base.MethodNotifyInfoMap[methodName]
-	if exist {
-		return "", fmt.Errorf("cannot make method version key cause method %s not exist", methodName)
-	}
 	versionKey := base.MakeVersionKey(info.VersionKeyPrefix, info, keyArgs)
 	return versionKey, nil
 }
