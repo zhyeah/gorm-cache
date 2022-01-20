@@ -87,6 +87,17 @@ func RealTypeCheck(obj interface{}, kind reflect.Kind) bool {
 	return (objType.Kind() == kind)
 }
 
+// GetRealTypeAndValue 获取对象真实的type和value
+func GetRealTypeAndValue(obj interface{}) (reflect.Type, reflect.Value) {
+	objType := reflect.TypeOf(obj)
+	objValue := reflect.ValueOf(obj)
+	for objType.Kind() == reflect.Ptr {
+		objType = objType.Elem()
+		objValue = objValue.Elem()
+	}
+	return objType, objValue
+}
+
 // GetListLength 获取list长度
 func GetListLength(obj interface{}) int {
 	objType := reflect.TypeOf(obj)
@@ -138,4 +149,9 @@ func NewListPtrValueByType(objType reflect.Type) reflect.Value {
 		objType = objType.Elem()
 	}
 	return reflect.New(reflect.SliceOf(objType))
+}
+
+// NewMapPtrValueByType new a slice of objType
+func NewMapPtrValueByType(keyType, objType reflect.Type) reflect.Value {
+	return reflect.New(reflect.MapOf(keyType, objType))
 }
