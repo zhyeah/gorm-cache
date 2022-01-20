@@ -86,7 +86,7 @@ func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]inte
 		// method invoke done, clear map
 		antiPanetrateMap.Delete(key)
 
-		gc.SetWithExpire(key, wgInter.(*WrappedValue).Value, time.Duration(timeoutMillis)*time.Microsecond)
+		gc.SetWithExpire(key, wgInter.(*WrappedValue).Value, time.Duration(timeoutMillis+100)*time.Millisecond)
 
 		*retValuesPtr = *wgInter.(*WrappedValue).Value
 	}
