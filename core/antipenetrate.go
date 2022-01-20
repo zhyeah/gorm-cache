@@ -8,23 +8,25 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bluele/gcache"
 	"github.com/zhyeah/gorm-cache/log"
 	"github.com/zhyeah/gorm-cache/util"
 )
 
-// SortEntry 排序entry
+// SortEntry sorted entry
 type SortEntry struct {
 	Key   string      `json:"key"`
 	Value interface{} `json:"value"`
 }
 
-// WrappedValue 包装的返回值
+// WrappedValue wrapped value
 type WrappedValue struct {
 	WaitGroup *sync.WaitGroup
 	Value     *[]interface{}
 }
 
 var antiPanetrateMap sync.Map
+var gc gcache.Cache = gcache.New(8192).LRU().Build()
 
 // AntiPenetrate proxy
 func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]interface{}, timeoutMillis int64) error {
@@ -34,6 +36,14 @@ func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]inte
 		return err
 	}
 
+	// check if cache has static cache
+	retValue, err := gc.Get(key)
+	if err == nil {
+		*retValuesPtr = *(retValue.(*[]interface{}))
+		return nil
+	}
+
+	// otherwise, do anti-penetrate
 	wrappedValue := &WrappedValue{
 		WaitGroup: &sync.WaitGroup{},
 		Value:     &[]interface{}{},
@@ -71,6 +81,10 @@ func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]inte
 		for _, retValue := range retValues {
 			*wrappedValue.Value = append(*wrappedValue.Value, retValue.Interface())
 		}
+		// method invoke done, clear map
+		antiPanetrateMap.Delete(key)
+
+		gc.SetWithExpire(key, wgInter.(*WrappedValue).Value, time.Duration(timeoutMillis)*time.Microsecond)
 
 		*retValuesPtr = *wgInter.(*WrappedValue).Value
 	}
