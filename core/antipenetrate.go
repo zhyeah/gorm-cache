@@ -35,6 +35,7 @@ func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]inte
 	if err != nil {
 		return err
 	}
+	log.Logger.Debugf("Penetrate key: %s", key)
 
 	// check if cache has static cache
 	retValue, err := gc.Get(key)
@@ -70,6 +71,7 @@ func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]inte
 		*retValuesPtr = *wgInter.(*WrappedValue).Value
 	} else {
 		// if map doesn't have value, this goroutine should penetrate this method to find value
+		log.Logger.Debug("Penetrate into method")
 		defer wrappedValue.WaitGroup.Done()
 		_, funcValue := util.GetRealTypeAndValue(proxyedFunc)
 
