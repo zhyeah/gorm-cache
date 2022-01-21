@@ -30,6 +30,11 @@ var gc gcache.Cache = gcache.New(8192).LRU().Build()
 
 // AntiPenetrate proxy
 func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]interface{}, timeoutMillis int64) error {
+	return AntiPenetrateWithCache(proxyedFunc, inputValuesPtr, retValuesPtr, timeoutMillis, 0)
+}
+
+// AntiPenetrateWithCache proxy with cache
+func AntiPenetrateWithCache(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]interface{}, timeoutMillis int64, cacheMillis int64) error {
 	// calculate map key based on `proxyedFunc` and `inputValues`
 	key, err := MakePenetrateKey(proxyedFunc, inputValuesPtr)
 	if err != nil {
@@ -86,7 +91,9 @@ func AntiPenetrate(proxyedFunc interface{}, inputValuesPtr, retValuesPtr *[]inte
 		// method invoke done, clear map
 		antiPanetrateMap.Delete(key)
 
-		gc.SetWithExpire(key, wgInter.(*WrappedValue).Value, time.Duration(timeoutMillis+100)*time.Millisecond)
+		if cacheMillis > 0 {
+			gc.SetWithExpire(key, wgInter.(*WrappedValue).Value, time.Duration(cacheMillis+100)*time.Millisecond)
+		}
 
 		*retValuesPtr = *wgInter.(*WrappedValue).Value
 	}
