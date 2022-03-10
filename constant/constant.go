@@ -8,6 +8,7 @@ const (
 // notify type constant
 const (
 	NotifyTypeConcrete = "concrete"
+	NotifyTypeList     = "list"
 	NotifyTypeRange    = "range"
 )
 

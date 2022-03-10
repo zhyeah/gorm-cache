@@ -89,7 +89,8 @@ func (base *CacheDaoBase) Initialize(instance interface{}) error {
 			return err
 		}
 
-		versionKeyPrefix := "V_" + doType.Name()
+		// FIXME: if sort `notify.Keys`, the duplicated notifyInfo can be more less.
+		versionKeyPrefix := "V_" + doType.Name() + "_" + strings.Join(notify.Keys, "_")
 		notifyInfo := NotifyInfo{
 			Type:             notify.Type,
 			Fields:           notify.Keys,
@@ -98,9 +99,8 @@ func (base *CacheDaoBase) Initialize(instance interface{}) error {
 		}
 
 		// make notiyInfo array
-		filterKey := versionKeyPrefix + "_" + strings.Join(notify.Keys, "_")
-		if _, ok := filterMap[filterKey]; !ok {
-			filterMap[filterKey] = 1
+		if _, ok := filterMap[versionKeyPrefix]; !ok {
+			filterMap[versionKeyPrefix] = 1
 			base.NotifyInfos = append(base.NotifyInfos, &notifyInfo)
 		}
 
@@ -484,8 +484,8 @@ func (base *CacheDaoBase) GetByConcreteKeys(args ...interface{}) (interface{}, e
 	return retList, nil
 }
 
-// GetByList list cache
-func (base *CacheDaoBase) GetByList(args ...interface{}) (interface{}, error) {
+// GetByRange range cache
+func (base *CacheDaoBase) GetByRange(args ...interface{}) (interface{}, error) {
 	sqlMethodName := util.GetLastExecuteFuncName()
 
 	// try to get from cache first.
@@ -533,7 +533,9 @@ func (base *CacheDaoBase) NotifyModified(curDo interface{}) error {
 		log.Logger.Errorf("Update single key field, id: %d err: %v", id, err)
 	}
 	log.Logger.Debugf("object key: %s", objectKey)
-	MemcacheClient.Delete(objectKey)
+	if objectKey != "" {
+		MemcacheClient.Delete(objectKey)
+	}
 
 	// update version cache
 	for _, info := range base.NotifyInfos {
@@ -787,6 +789,7 @@ func (base *CacheDaoBase) MakeMethodVersionKey(methodName string, args ...interf
 	}
 
 	versionKey := base.MakeVersionKey(info.VersionKeyPrefix, info, keyArgs)
+	log.Logger.Debugf("Maked version key: %s", versionKey)
 	return versionKey, nil
 }
 
